@@ -2,12 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_weather_api/common/component/custom_appbar.dart';
 import 'package:flutter_weather_api/common/component/custom_image.dart';
+import 'package:flutter_weather_api/common/component/custom_showdiaLog.dart';
 import 'package:flutter_weather_api/common/component/custom_text.dart';
-import 'package:flutter_weather_api/common/component/custom_text_field.dart';
+import 'package:flutter_weather_api/common/component/custom_toast.dart';
 import 'package:flutter_weather_api/common/function/sizeFn.dart';
 import 'package:flutter_weather_api/main/component/bottomContainer.dart';
 import 'package:intl/intl.dart';
-import '../../common/component/custom_elevatedButton.dart';
 import '../../common/const/data.dart';
 
 class WeatherScreen extends StatefulWidget {
@@ -50,13 +50,12 @@ class _WeatherScreenState extends State<WeatherScreen> {
       isLoading = true;
     });
     try {
-      final res = await dio.get('https://api.openweathermap.org/data/2.5/weather?q=${data["name"]}&APPID=$WEATHER_TOKEN');
+      final res = await dio.get(
+          'https://api.openweathermap.org/data/2.5/weather?q=${data["name"]}&APPID=$WEATHER_TOKEN');
 
       if (res.statusCode == 200) {
         formatTimestamp(res.data["dt"]);
         String icon = res.data["weather"][0]["icon"];
-
-        print(icon);
 
         setState(() {
           data["weather_description"] = res.data["weather"][0]["description"];
@@ -85,7 +84,21 @@ class _WeatherScreenState extends State<WeatherScreen> {
       setState(() {
         isLoading = false;
       });
-      print('Error fetching data: $e');
+      if (e is DioException) {
+        int? errCode = e.response?.statusCode;
+
+        if (errCode == 404) {
+          customToast(
+            message: "검색 결과를 찾지못했습니다",
+            color: Colors.black
+          );
+        } else if(errCode == 500) {
+          customToast(
+              message: "서버 에러",
+              color: Colors.black
+          );
+        }
+      }
     }
   }
 
@@ -94,10 +107,36 @@ class _WeatherScreenState extends State<WeatherScreen> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: "",
+      appBar: CustomAppBar(
+        title: "Weather",
         showLeading: false,
-        bgColor: Color.fromRGBO(232, 100, 122, 1.0),
+        bgColor: const Color.fromRGBO(232, 100, 122, 1.0),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showTextFieldDialogModule(
+                context,
+                titleText: "날씨 검색",
+                hintText: "도시명 입력",
+                onChanged: (value) {
+                  setState(() {
+                    data["name"] = value;
+                  });
+                },
+                onPressed: () {
+                  if (data["name"] == "") {
+                    customToast(message: "검색어를 입력하세요", color: Colors.black);
+                  } else {
+                    getData();
+                    Navigator.pop(context);
+                  }
+                },
+              );
+              print(data["name"]);
+            },
+            icon: const Icon(Icons.search),
+          )
+        ],
       ),
       body: GestureDetector(
         onTap: () {
@@ -109,40 +148,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
           color: const Color.fromRGBO(232, 100, 122, 1.0),
           child: Column(
             children: [
-              // 첫 번째 Container - 이 부분만 남겨두고 isLoading에 따라 로딩 표시
               SizedBox(height: deviceHeight(context) * 0.01),
-              SizedBox(
-                width: size.width * 0.9,
-                height: deviceHeight(context) * 0.1,
-                child: Row(
-                  children: [
-                    CustomTextFieldWidget(
-                      width: size.width * 0.65,
-                      backGroundColor: Colors.white,
-                      hintText: "입력",
-                      onChanged: (value) {
-                        setState(() {
-                          data["name"] = value;
-                        });
-                      },
-                    ),
-                    SizedBox(width: size.width * 0.04),
-                    customElevatedButton(
-                      context,
-                      width: size.width * 0.2,
-                      color: Colors.blue,
-                      text: "버튼",
-                      buttonTextSize: size.width * 0.04,
-                      onPressed: () async {
-                        getData();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
               if (isLoading) const Center(child: CircularProgressIndicator()),
-
               if (!isLoading && data['icon'] != "") ...[
                 SizedBox(height: deviceHeight(context) * 0.01),
                 Column(
@@ -180,8 +187,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                 SizedBox(
                   width: size.width * 0.9,
                   height: deviceHeight(context) * 0.2,
-                  child:
-                  customImage(image: data["icon"], fit: BoxFit.contain),
+                  child: customImage(image: data["icon"], fit: BoxFit.contain),
                 ),
                 SizedBox(height: deviceHeight(context) * 0.01),
                 SizedBox(
@@ -199,14 +205,12 @@ class _WeatherScreenState extends State<WeatherScreen> {
                             mainText: data["feel_temp"],
                             subText: "체감 온도",
                           ),
-
                           bottomContainer(
                             context,
                             icon: Icons.wb_sunny,
                             mainText: data["max_temp"],
                             subText: "최고 온도",
                           ),
-
                           bottomContainer(
                             context,
                             icon: Icons.ac_unit,
@@ -217,31 +221,28 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       ),
                       // 하단 Row
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        // 가로 간격 균등 배치
-                        children: [
-                          bottomContainer(
-                            context,
-                            icon: Icons.wind_power,
-                            mainText: data["wind"],
-                            subText: "풍속",
-                          ),
-
-                          bottomContainer(
-                            context,
-                            icon: Icons.speed,
-                            mainText: data["pressure"],
-                            subText: "대기압",
-                          ),
-
-                          bottomContainer(
-                            context,
-                            icon: Icons.water_drop,
-                            mainText: data["humidity"],
-                            subText: "습도",
-                          ),
-                        ]
-                      ),
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          // 가로 간격 균등 배치
+                          children: [
+                            bottomContainer(
+                              context,
+                              icon: Icons.wind_power,
+                              mainText: data["wind"],
+                              subText: "풍속",
+                            ),
+                            bottomContainer(
+                              context,
+                              icon: Icons.speed,
+                              mainText: data["pressure"],
+                              subText: "대기압",
+                            ),
+                            bottomContainer(
+                              context,
+                              icon: Icons.water_drop,
+                              mainText: data["humidity"],
+                              subText: "습도",
+                            ),
+                          ]),
                     ],
                   ),
                 ),

@@ -21,6 +21,7 @@ class CustomTextFieldWidget extends StatefulWidget {
   final bool onlyNum;
   final bool obscureText;
   final String myControllerText;
+  final bool autoFocus;
 
   const CustomTextFieldWidget({
     super.key,
@@ -32,6 +33,7 @@ class CustomTextFieldWidget extends StatefulWidget {
     this.onlyNum = false,
     this.obscureText = false,
     this.myControllerText = "",
+    this.autoFocus = false,
   });
 
   @override
@@ -65,7 +67,9 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
 
     // height 값에 따라 contentPadding을 동적으로 설정
     EdgeInsetsGeometry contentPadding = EdgeInsets.symmetric(
-      vertical: (widget.height != null && widget.height! < 40) ? widget.height! * 0.2 : 20,
+      vertical: (widget.height != null && widget.height! < 40)
+          ? widget.height! * 0.2
+          : 20,
       horizontal: 20,
     );
 
@@ -73,6 +77,7 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
       width: widget.width ?? sizeFn(context).width * 0.9,
       height: 70,
       child: TextFormField(
+        autofocus: widget.autoFocus,
         obscureText: _obscureText,
         controller: _myController,
         onChanged: widget.onChanged,
@@ -83,7 +88,8 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
         ],
         style: textStyle,
         decoration: InputDecoration(
-          suffixIcon: widget.obscureText ? IconButton(
+          suffixIcon: widget.obscureText
+              ? IconButton(
                   onPressed: () {
                     setState(() {
                       _obscureText = !_obscureText; // 클릭 시 텍스트 숨김/표시 토글
@@ -92,7 +98,8 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
                   icon: Icon(
                     _obscureText ? Icons.visibility : Icons.visibility_off,
                   ),
-                ) : null,
+                )
+              : null,
           contentPadding: contentPadding,
           hintText: widget.hintText,
           hintStyle: textStyle,
