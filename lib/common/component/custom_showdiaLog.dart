@@ -58,6 +58,7 @@ void showTextFieldDialogModule(BuildContext context, {
               hintText: hintText,
               onChanged: onChanged,
               autoFocus: true,
+              textSpacing: true,
             )
           ],
         ),

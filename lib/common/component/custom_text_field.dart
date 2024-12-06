@@ -22,6 +22,7 @@ class CustomTextFieldWidget extends StatefulWidget {
   final bool obscureText;
   final String myControllerText;
   final bool autoFocus;
+  final bool textSpacing;
 
   const CustomTextFieldWidget({
     super.key,
@@ -34,6 +35,7 @@ class CustomTextFieldWidget extends StatefulWidget {
     this.obscureText = false,
     this.myControllerText = "",
     this.autoFocus = false,
+    this.textSpacing = false,
   });
 
   @override
@@ -83,7 +85,7 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
         onChanged: widget.onChanged,
         keyboardType: widget.onlyNum ? TextInputType.number : TextInputType.text,
         inputFormatters: [
-          FilteringTextInputFormatter.deny(RegExp(r'\s')), // 띄어쓰기 금지
+          if (!widget.textSpacing) FilteringTextInputFormatter.deny(RegExp(r'\s')), // 띄어쓰기 금지
           if (widget.onlyNum) FilteringTextInputFormatter.digitsOnly,
         ],
         style: textStyle,

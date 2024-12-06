@@ -89,8 +89,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
         if (errCode == 404) {
           customToast(
-            message: "검색 결과를 찾지못했습니다",
-            color: Colors.black
+              message: "검색 결과를 찾지못했습니다",
+              color: Colors.black
           );
         } else if(errCode == 500) {
           customToast(
